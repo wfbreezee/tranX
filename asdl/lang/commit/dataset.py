@@ -65,11 +65,11 @@ def load_dataset(transition_system, dataset_file):
 def prepare_dataset():
     # vocab_freq_cutoff = 1 for atis
     vocab_freq_cutoff = 2  # for geo query
-    grammar = ASDLGrammar.from_text(open('/home/jiang/tranX/asdl/lang/commit/commit_asdl_AT1.txt').read())
+    grammar = ASDLGrammar.from_text(open('/content/tranX/asdl/lang/commit/commit_asdl_AT1.txt').read())
     transition_system = CommitTransitionSystemtest(grammar)
 
-    train_set = load_dataset(transition_system, '/home/jiang/tranX/data/commit/commit.txt')
-    test_set = load_dataset(transition_system, '/home/jiang/tranX/data/commit/test.txt')
+    train_set = load_dataset(transition_system, '/content/tranX/data/commit/commit.txt')
+    test_set = load_dataset(transition_system, '/content/tranX/data/commit/test.txt')
 
     # generate vocabulary
     src_vocab = VocabEntry.from_corpus([e.src_sent for e in train_set], size=5000, freq_cutoff=vocab_freq_cutoff)
@@ -92,9 +92,9 @@ def prepare_dataset():
     print('Avg action len: %d' % np.average(action_len), file=sys.stderr)
     print('Actions larger than 100: %d' % len(list(filter(lambda x: x > 100, action_len))), file=sys.stderr)
 
-    pickle.dump(train_set, open('/home/jiang/tranX/data/commit/train3.bin', 'wb'))
-    pickle.dump(test_set, open('/home/jiang/tranX/data/commit/test3.bin', 'wb'))
-    pickle.dump(vocab, open('/home/jiang/tranX/data/commit/vocab.freq23.bin', 'wb'))
+    pickle.dump(train_set, open('/content/tranX/data/commit/train3.bin', 'wb'))
+    pickle.dump(test_set, open('/content/tranX/data/commit/test3.bin', 'wb'))
+    pickle.dump(vocab, open('/content/tranX/data/commit/vocab.freq23.bin', 'wb'))
 
 
 if __name__ == '__main__':

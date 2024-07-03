@@ -2,8 +2,8 @@
 set -e
 
 seed=${1:-0}
-vocab="/home/jiang/tranX/data/commit/vocab.freq23.bin"
-train_file="/home/jiang/tranX/data/commit/train3.bin"
+vocab="/content/tranX/data/commit/vocab.freq23.bin"
+train_file="/content/tranX/data/commit/train3.bin"
 dropout=0.5
 hidden_size=256
 embed_size=128
@@ -25,12 +25,12 @@ echo "**** Writing results to logs/jobs/${model_name}.log ****"
 mkdir -p logs/jobs
 echo commit hash: `git rev-parse HEAD` > logs/jobs/${model_name}.log
 
-python -u /home/jiang/tranX/exp.py \
+python -u /content/tranX/exp.py \
     \
     --seed ${seed} \
     --mode train \
     --batch_size ${batch_size} \
-    --asdl_file /home/jiang/tranX/asdl/lang/commit/commit_asdl_AT1.txt \
+    --asdl_file /content/tranX/asdl/lang/commit/commit_asdl_AT1.txt \
     --transition_system committest \
     --train_file ${train_file} \
     --vocab ${vocab} \
@@ -58,6 +58,6 @@ python -u /home/jiang/tranX/exp.py \
     --decode_max_time_step 55 \
     --log_every 50 \
     --save_all_models \
-    --save_to /home/jiang/tranX/saved_models/jobs/${model_name} 2>&1 | tee -a logs/jobs/${model_name}.log
+    --save_to /content/tranX/saved_models/jobs/${model_name} 2>&1 | tee -a logs/jobs/${model_name}.log
 
-. /home/jiang/tranX/scripts/commit/test.sh /home/jiang/tranX/saved_models/jobs/${model_name}.bin 2>&1 | tee -a logs/jobs/${model_name}.log
+. /content/tranX/scripts/commit/test.sh /content/tranX/saved_models/jobs/${model_name}.bin 2>&1 | tee -a logs/jobs/${model_name}.log
