@@ -1,6 +1,6 @@
 import re
 from tabulate import tabulate
-from .query import Query
+from datasets.wikisql.lib.query import Query
 import random
 
 

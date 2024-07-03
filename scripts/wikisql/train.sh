@@ -23,7 +23,7 @@ echo commit hash: `git rev-parse HEAD` > logs/wikisql/${model_name}.log
 
 echo `which python`
 
-python -u exp.py \
+python -u /home/jiang/tranX/exp.py \
     --cuda \
     --seed ${seed} \
     --mode train \

@@ -196,7 +196,7 @@ def load_dataset(transition_system, dataset_file, table_file):
 
 
 def prepare_dataset(data_path):
-    grammar = ASDLGrammar.from_text(open('asdl/lang/sql/sql_asdl.txt').read())
+    grammar = ASDLGrammar.from_text(open('/home/tranX/asdl/lang/commit/commit_asdl1.txt').read())
     transition_system = SqlTransitionSystem(grammar)
 
     datasets = []
@@ -205,7 +205,7 @@ def prepare_dataset(data_path):
         dataset_path = os.path.join(data_path, file + '.jsonl')
         table_path = os.path.join(data_path, file + '.tables.jsonl')
         dataset = load_dataset(transition_system, dataset_path, table_path)
-        pickle.dump(dataset, open('data/wikisql/%s.bin' % file, 'wb'))
+        pickle.dump(dataset, open('/home/jiang/tranX/data/wikisql/%s.bin' % file, 'wb'))
 
         datasets.append(dataset)
 
@@ -220,7 +220,7 @@ def prepare_dataset(data_path):
     vocab = Vocab(source=src_vocab, primitive=primitive_vocab)
     print('generated vocabulary %s' % repr(vocab), file=sys.stderr)
 
-    pickle.dump(vocab, open('data/wikisql/vocab.bin', 'wb'))
+    pickle.dump(vocab, open('/home/jiang/tranX/data/wikisql/vocab.bin', 'wb'))
 
     action_len = [len(e.tgt_actions) for e in chain(train_set, dev_set, test_set)]
     print('Max action len: %d' % max(action_len), file=sys.stderr)
@@ -228,14 +228,14 @@ def prepare_dataset(data_path):
     print('Actions larger than 100: %d' % len(list(filter(lambda x: x > 100, action_len))), file=sys.stderr)
 
 
-if __name__ == '__main__':
-    # play ground..
-    # data_file = '/Users/yinpengcheng/Research/SemanticParsing/WikiSQL/data/dev.jsonl'
-    # engine = DBEngine('/Users/yinpengcheng/Research/SemanticParsing/WikiSQL/data/dev.db')
-    # for line in open(data_file):
-    #     example = json.loads(line)
-    #     query = Query.from_dict(example['sql'])
-    #     result = engine.execute_query(example['table_id'], query)
-    #     pass
-
-    prepare_dataset(data_path='/Users/yinpengcheng/Research/SemanticParsing/WikiSQL/annotated')
+# if __name__ == '__main__':
+#     # play ground..
+#     # data_file = '/Users/yinpengcheng/Research/SemanticParsing/WikiSQL/data/dev.jsonl'
+#     # engine = DBEngine('/Users/yinpengcheng/Research/SemanticParsing/WikiSQL/data/dev.db')
+#     # for line in open(data_file):
+#     #     example = json.loads(line)
+#     #     query = Query.from_dict(example['sql'])
+#     #     result = engine.execute_query(example['table_id'], query)
+#     #     pass
+#
+#     prepare_dataset(data_path='/Users/yinpengcheng/Research/SemanticParsing/WikiSQL/annotated')

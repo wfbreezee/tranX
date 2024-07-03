@@ -7,3 +7,4 @@ def remove_comment(text):
     text = '\n'.join(filter(lambda x: x, text.split('\n')))
 
     return text
+

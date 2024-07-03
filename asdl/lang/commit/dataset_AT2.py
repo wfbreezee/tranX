@@ -1,11 +1,12 @@
 # coding=utf-8
 from __future__ import print_function
 import sys
-
+from token1 import *
 from asdl.hypothesis import Hypothesis
 from asdl.transition_system import ApplyRuleAction
 
-from asdl.lang.prolog.prolog_transition_system import *
+#from asdl.lang.commit.commit_transition_system import *
+from asdl.lang.commit.commit_transition_system_AT1 import *
 from asdl.asdl import ASDLGrammar
 from components.action_info import get_action_infos
 from components.dataset import Example
@@ -20,15 +21,33 @@ import numpy as np
 def load_dataset(transition_system, dataset_file):
     examples = []
     for idx, line in enumerate(open(dataset_file)):
-        src_query, tgt_code = line.strip().split('\t')
+        src_query, tgt_code = line.strip().split(';')
 
         src_query_tokens = src_query.split(' ')
 
-        tgt_ast = prolog_expr_to_ast(transition_system.grammar, tgt_code)
-        reconstructed_prolog_expr = ast_to_prolog_expr(tgt_ast)
-        assert tgt_code == reconstructed_prolog_expr
+        for i, token in enumerate(src_query_tokens):
 
+            if token[0].isupper():
+                token = Token(token, 'name')
+                print(token.value,token.type)
+            elif token[0].isdigit():
+                token = Token(token, 'time')
+                print(token.value,token.type)
+            elif token.startswith('/'):
+                token = Token(token, 'path')
+                print(token.value,token.type)
+            else:
+                token = Token(token)
+                print(token.value,token.type)
+        #return src_query_tokens
+
+        tgt_ast = commit_expr_to_ast(transition_system.grammar, tgt_code)
+
+        reconstructed_prolog_expr = ast_to_commit_expr(tgt_ast)
+
+        assert tgt_code == reconstructed_prolog_expr
         #print('1',tgt_ast)
+        #expr -> Apply(pred predicate, arg* arguments)
         tgt_actions = transition_system.get_actions(tgt_ast)
 
         # sanity check
@@ -64,11 +83,11 @@ def load_dataset(transition_system, dataset_file):
 def prepare_dataset():
     # vocab_freq_cutoff = 1 for atis
     vocab_freq_cutoff = 2  # for geo query
-    grammar = ASDLGrammar.from_text(open('/home/jiang/tranX/asdl/lang/prolog/prolog_asdl.txt').read())
-    transition_system = PrologTransitionSystem(grammar)
+    grammar = ASDLGrammar.from_text(open('/home/jiang/tranX/asdl/lang/commit/commit_asdl_AT1.txt').read())
+    transition_system = CommitTransitionSystemtest(grammar)
 
-    train_set = load_dataset(transition_system, '/home/jiang/tranX/data/jobs/train.txt')
-    test_set = load_dataset(transition_system, '/home/jiang/tranX/data/jobs/test.txt')
+    train_set = load_dataset(transition_system, '/home/jiang/tranX/data/commit/commit1380type.txt')
+    test_set = load_dataset(transition_system, '/home/jiang/tranX/data/commit/test1380type.txt')
 
     # generate vocabulary
     src_vocab = VocabEntry.from_corpus([e.src_sent for e in train_set], size=5000, freq_cutoff=vocab_freq_cutoff)
@@ -86,14 +105,14 @@ def prepare_dataset():
     vocab = Vocab(source=src_vocab, primitive=primitive_vocab, code=code_vocab)
     print('generated vocabulary %s' % repr(vocab), file=sys.stderr)
 
-    action_len = [len(e.tgt_actions) for e in chain(train_set, test_set)]
+    action_len = [len(e.tgt_actions) for e in chain(train_set)]
     print('Max action len: %d' % max(action_len), file=sys.stderr)
     print('Avg action len: %d' % np.average(action_len), file=sys.stderr)
     print('Actions larger than 100: %d' % len(list(filter(lambda x: x > 100, action_len))), file=sys.stderr)
 
-    pickle.dump(train_set, open('/home/jiang/tranX/data/jobs/train.bin', 'wb'))
-    pickle.dump(test_set, open('/home/jiang/tranX/data/jobs/test.bin', 'wb'))
-    pickle.dump(vocab, open('/home/jiang/tranX/data/jobs/vocab.freq2.bin', 'wb'))
+    pickle.dump(train_set, open('/home/jiang/tranX/data/commit/train3.bin', 'wb'))
+    pickle.dump(test_set, open('/home/jiang/tranX/data/commit/test3.bin', 'wb'))
+    pickle.dump(vocab, open('/home/jiang/tranX/data/commit/vocab.freq23.bin', 'wb'))
 
 
 if __name__ == '__main__':

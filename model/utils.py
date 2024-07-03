@@ -10,9 +10,9 @@ class GloveHelper(object):
     def __init__(self, glove_file):
         self.glove_file = glove_file
         embeds = np.zeros((5000, 100), dtype='float32')
-        for i, (word, embed) in enumerate(self.embeddings):
-            if i == 5000: break
-            embeds[i] = embed
+        #for i, (word, embed) in enumerate(self.embeddings):
+            #if i == 5000: break
+            #embeds[i] = embed
 
         self.mean = np.mean(embeds)
         self.std = np.std(embeds)
@@ -33,11 +33,11 @@ class GloveHelper(object):
     def load_to(self, embed_layer, vocab):
         new_tensor = embed_layer.weight.data.new
         word_ids = set(range(embed_layer.num_embeddings))
-        for word, embed in self.embeddings:
-            if word in vocab:
-                word_id = vocab[word]
-                word_ids.remove(word_id)
-                embed_layer.weight[word_id].data = new_tensor(embed)
+        #for word, embed in self.embeddings:
+            #if word in vocab:
+               # word_id = vocab[word]
+                #word_ids.remove(word_id)
+               # embed_layer.weight[word_id].data = new_tensor(embed)
 
         word_ids = list(word_ids)
         embed_layer.weight[word_ids].data = new_tensor(self.emulate_embeddings(shape=(len(word_ids), embed_layer.embedding_dim)))

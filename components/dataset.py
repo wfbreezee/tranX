@@ -1,6 +1,6 @@
 # coding=utf-8
 from collections import OrderedDict
-
+#from asdl import asdl
 import torch
 import numpy as np
 try:
@@ -138,7 +138,7 @@ class Batch(object):
 
                     if isinstance(action, ApplyRuleAction):
                         app_rule_idx = self.grammar.prod2id[action.production]
-                        # assert self.grammar.id2prod[app_rule_idx] == action.production
+                        #assert self.grammar.id2prod[app_rule_idx] == action.production
                         app_rule_mask = 1
                     elif isinstance(action, ReduceAction):
                         app_rule_idx = len(self.grammar)
@@ -162,9 +162,9 @@ class Batch(object):
                             # otherwise, we can still generate it from the vocabulary
                             gen_token_mask = 1
 
-                        if token_can_copy:
-                            assert action_info.copy_from_src
-                            assert action_info.src_token_position in token_pos_list
+                        #if token_can_copy:
+                            #assert action_info.copy_from_src
+                            #ssert action_info.src_token_position in token_pos_list
 
                         # # cannot copy, only generation
                         # # could be unk!

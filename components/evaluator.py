@@ -15,6 +15,7 @@ class Evaluator(object):
         return self.transition_system.compare_ast(hyp.tree, example.tgt_ast)
 
     def evaluate_dataset(self, examples, decode_results, fast_mode=False):
+
         correct_array = []
         oracle_array = []
         for example, hyp_list in zip(examples, decode_results):
@@ -40,7 +41,9 @@ class Evaluator(object):
 
                 correct_array.append(hyp_list[0].is_correct)
                 oracle_array.append(any(hyp.is_correct for hyp in hyp_list))
+                print("correct array:", correct_array)
             else:
+
                 correct_array.append(False)
                 oracle_array.append(False)
 
@@ -49,7 +52,9 @@ class Evaluator(object):
         oracle_acc = np.average(oracle_array)
         eval_results = dict(accuracy=acc,
                             oracle_accuracy=oracle_acc)
-
+        print(acc)
+        print(oracle_acc)
+        # print(eval_results)
         return eval_results
 
 

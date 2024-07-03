@@ -1,7 +1,7 @@
 import records
 import re
 from babel.numbers import parse_decimal, NumberFormatError
-from .query import Query
+from datasets.wikisql.lib.query import Query
 
 
 schema_re = re.compile(r'\((.+)\)')
@@ -19,7 +19,8 @@ class DBEngine:
     def execute(self, table_id, select_index, aggregation_index, conditions, lower=True):
         if not table_id.startswith('table'):
             table_id = 'table_{}'.format(table_id.replace('-', '_'))
-        table_info = self.db.query('SELECT sql from sqlite_master WHERE tbl_name = :name', name=table_id).all()[0].sql
+        conn = self.db.get_connection()
+        table_info = conn.query('SELECT sql from sqlite_master WHERE tbl_name = :name', name=table_id).all()[0].sql
         schema_str = schema_re.findall(table_info)[0]
         schema = {}
         for tup in schema_str.split(', '):

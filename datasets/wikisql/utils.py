@@ -1,7 +1,7 @@
 # coding=utf-8
 import re
 from babel.numbers import parse_decimal, NumberFormatError
-from .lib.query import Query
+from datasets.wikisql.lib.query import Query
 
 num_re = re.compile(r'[-+]?\d*\.\d+|\d+')
 
@@ -47,8 +47,8 @@ def detokenize_query(query, example_dict, table):
 
         detokenized_cond_val = my_detokenize(val_tokens, example_dict['question'])
 
-        if table.header[col].type == 'real' and not isinstance(detokenized_cond_val, (int, float)):
-            if ',' not in detokenized_cond_val:
+        #if table.header[col].type == 'real' and not isinstance(detokenized_cond_val, (int, float)):
+        if ',' not in detokenized_cond_val:
                 try:
                     detokenized_cond_val = float(parse_decimal(val))
                 except NumberFormatError as e:

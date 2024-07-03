@@ -1,11 +1,12 @@
 # coding=utf-8
-
+from asdl.asdl import Field, ASDLCompositeType
+#from asdl import Field
 try:
     from cStringIO import StringIO
 except:
     from io import StringIO
 
-from .asdl import *
+from asdl import *
 
 
 class AbstractSyntaxTree(object):

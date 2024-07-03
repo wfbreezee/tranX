@@ -44,12 +44,14 @@ class TransitionSystem(object):
 
     def get_actions(self, asdl_ast):
         """
-        generate action sequence given the ASDL Syntax Tree
+        generate action sequence given the asdl Syntax Tree
         """
 
         actions = []
-
+        #print('2',asdl_ast)
         parent_action = ApplyRuleAction(asdl_ast.production)
+
+
         actions.append(parent_action)
 
         for field in asdl_ast.fields:
@@ -144,5 +146,12 @@ class TransitionSystem(object):
         elif lang == 'wikisql':
             from .lang.sql.sql_transition_system import SqlTransitionSystem
             return SqlTransitionSystem
+        elif lang == 'commit':
+            from .lang.commit.commit_transition_system import CommitTransitionSystem
+            return CommitTransitionSystem
+        elif lang == 'committest':
+            from .lang.commit.commit_transition_system_AT1 import CommitTransitionSystemtest
+            return CommitTransitionSystemtest
+
 
         raise ValueError('unknown language %s' % lang)

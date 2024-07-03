@@ -8,7 +8,7 @@ import six.moves.cPickle as pickle
 from six.moves import input
 from six.moves import xrange as range
 from torch.autograd import Variable
-
+#from asdl import asdl
 import evaluation
 from asdl.asdl import ASDLGrammar
 from asdl.transition_system import TransitionSystem
@@ -22,7 +22,10 @@ from model.parser import Parser
 from model.reconstruction_model import Reconstructor
 from model.utils import GloveHelper
 
-assert astor.__version__ == "0.7.1"
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
+#assert astor.__version__ == "0.7.1"
 if six.PY3:
     # import additional packages for wikisql dataset (works only under Python 3)
     pass
@@ -39,11 +42,11 @@ def init_config():
 
     return args
 
-
 def train(args):
     """Maximum Likelihood Estimation"""
 
     # load in train/dev set
+
     train_set = Dataset.from_bin_file(args.train_file)
 
     if args.dev_file:
@@ -53,8 +56,9 @@ def train(args):
     vocab = pickle.load(open(args.vocab, 'rb'))
 
     grammar = ASDLGrammar.from_text(open(args.asdl_file).read())
-    transition_system = Registrable.by_name(args.transition_system)(grammar)
-
+    #print(open(args.asdl_file).read())
+    #transition_system = Registrable.by_name(args.transition_system)(grammar)
+    transition_system = TransitionSystem.get_class_by_lang(args.transition_system)(grammar)
     parser_cls = Registrable.by_name(args.parser)  # TODO: add arg
     if args.pretrain:
         print('Finetune with: ', args.pretrain, file=sys.stderr)
@@ -64,7 +68,7 @@ def train(args):
 
     model.train()
     evaluator = Registrable.by_name(args.evaluator)(transition_system, args=args)
-    if args.cuda: model.cuda()
+    if args.cuda: model.to(device)
 
     optimizer_cls = eval('torch.optim.%s' % args.optimizer)  # FIXME: this is evil!
     optimizer = optimizer_cls(model.parameters(), lr=args.lr)
@@ -475,6 +479,7 @@ def test(args):
     eval_results, decode_results = evaluation.evaluate(test_set.examples, parser, evaluator, args,
                                                        verbose=args.verbose, return_decode_result=True)
     print(eval_results, file=sys.stderr)
+   # print(eval_results.)
     if args.save_decode_to:
         pickle.dump(decode_results, open(args.save_decode_to, 'wb'))
 

@@ -2,6 +2,8 @@
 from __future__ import print_function
 
 import os
+import token1
+
 from six.moves import xrange as range
 import math
 from collections import OrderedDict
@@ -14,8 +16,8 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 
-from asdl.hypothesis import Hypothesis, GenTokenAction
-from asdl.transition_system import ApplyRuleAction, ReduceAction, Action
+from asdl.hypothesis import Hypothesis
+from asdl.transition_system import ApplyRuleAction, ReduceAction, Action, GenTokenAction
 from common.registerable import Registrable
 from components.decode_hypothesis import DecodeHypothesis
 from components.action_info import ActionInfo
@@ -32,33 +34,33 @@ class Parser(nn.Module):
     """Implementation of a semantic parser
 
     The parser translates a natural language utterance into an AST defined under
-    the ASDL specification, using the transition system described in https://arxiv.org/abs/1810.02720
+    the asdl specification, using the transition system described in https://arxiv.org/abs/1810.02720
     """
     def __init__(self, args, vocab, transition_system):
         super(Parser, self).__init__()
 
         self.args = args
         self.vocab = vocab
-
+        #self.token = token
         self.transition_system = transition_system
         self.grammar = self.transition_system.grammar
 
-        # Embedding layers
+        # Embedding layers嵌入
 
-        # source token embedding
+        # source token embedding源标记嵌入
         self.src_embed = nn.Embedding(len(vocab.source), args.embed_size)
 
-        # embedding table of ASDL production rules (constructors), one for each ApplyConstructor action,
-        # the last entry is the embedding for Reduce action
+        # embedding table of asdl production rules (constructors), one for each ApplyConstructor action,asdl生成规则（构造函数）的嵌入表，每个ApplyConstructor操作一个
+        # the last entry is the embedding for Reduce action最后一个条目是Reduce操作的嵌入
         self.production_embed = nn.Embedding(len(transition_system.grammar) + 1, args.action_embed_size)
 
-        # embedding table for target primitive tokens
+        # embedding table for target primitive tokens目标基元令牌的嵌入表
         self.primitive_embed = nn.Embedding(len(vocab.primitive), args.action_embed_size)
 
-        # embedding table for ASDL fields in constructors
+        # embedding table for asdl fields in constructors在构造函数中嵌入asdl字段的表
         self.field_embed = nn.Embedding(len(transition_system.grammar.fields), args.field_embed_size)
 
-        # embedding table for ASDL types
+        # embedding table for asdl typesasdl类型的嵌入表
         self.type_embed = nn.Embedding(len(transition_system.grammar.types), args.type_embed_size)
 
         nn.init.xavier_normal_(self.src_embed.weight.data)
@@ -71,8 +73,8 @@ class Parser(nn.Module):
         if args.lstm == 'lstm':
             self.encoder_lstm = nn.LSTM(args.embed_size, int(args.hidden_size / 2), bidirectional=True)
 
-            input_dim = args.action_embed_size  # previous action
-            # frontier info
+            input_dim = args.action_embed_size  # previous action以前的行动
+            # frontier info前沿信息
             input_dim += args.action_embed_size * (not args.no_parent_production_embed)
             input_dim += args.field_embed_size * (not args.no_parent_field_embed)
             input_dim += args.type_embed_size * (not args.no_parent_field_type_embed)
@@ -97,10 +99,10 @@ class Parser(nn.Module):
             raise ValueError('Unknown LSTM type %s' % args.lstm)
 
         if args.no_copy is False:
-            # pointer net for copying tokens from source side
+            # pointer net for copying tokens from source side用于从源端复制令牌的指针网
             self.src_pointer_net = PointerNet(query_vec_size=args.att_vec_size, src_encoding_size=args.hidden_size)
 
-            # given the decoder's hidden state, predict whether to copy or generate a target primitive token
+            # given the decoder's hidden state, predict whether to copy or generate a target primitive token给定解码器的隐藏状态，预测是否复制或生成目标原语令牌
             # output: [p(gen(token)) | s_t, p(copy(token)) | s_t]
 
             self.primitive_predictor = nn.Linear(args.att_vec_size, 2)
@@ -108,20 +110,20 @@ class Parser(nn.Module):
         if args.primitive_token_label_smoothing:
             self.label_smoothing = LabelSmoothing(args.primitive_token_label_smoothing, len(self.vocab.primitive), ignore_indices=[0, 1, 2])
 
-        # initialize the decoder's state and cells with encoder hidden states
+        # initialize the decoder's state and cells with encoder hidden states用编码器隐藏状态初始化解码器的状态和单元
         self.decoder_cell_init = nn.Linear(args.hidden_size, args.hidden_size)
 
-        # attention: dot product attention
-        # project source encoding to decoder rnn's hidden space
+        # attention: dot product attention注意：点积注意
+        # project source encoding to decoder rnn's hidden space将源编码投影到解码器rnn的隐藏空间
 
         self.att_src_linear = nn.Linear(args.hidden_size, args.hidden_size, bias=False)
 
-        # transformation of decoder hidden states and context vectors before reading out target words
-        # this produces the `attentional vector` in (Luong et al., 2015)
+        # transformation of decoder hidden states and context vectors before reading out target words读出目标词前解码器隐藏状态和上下文向量的变换
+        # this produces the `attentional vector` in (Luong et al., 2015)这产生了“注意力向量”
 
         self.att_vec_linear = nn.Linear(args.hidden_size + args.hidden_size, args.att_vec_size, bias=False)
 
-        # bias for predicting ApplyConstructor and GenToken actions
+        # bias for predicting ApplyConstructor and GenToken actions预测ApplyConstructor和GenToken动作的偏差
         self.production_readout_b = nn.Parameter(torch.FloatTensor(len(transition_system.grammar) + 1).zero_())
         self.tgt_token_readout_b = nn.Parameter(torch.FloatTensor(len(vocab.primitive)).zero_())
 
@@ -129,6 +131,7 @@ class Parser(nn.Module):
             # if there is no additional linear layer between the attentional vector (i.e., the query vector)
             # and the final softmax layer over target actions, we use the attentional vector to compute action
             # probabilities
+            #如果注意力向量（即查询向量）和目标动作上的最终softmax层之间没有额外的线性层，我们使用注意力向量来计算动作概率
 
             assert args.att_vec_size == args.action_embed_size
             self.production_readout = lambda q: F.linear(q, self.production_embed.weight, self.production_readout_b)
@@ -336,16 +339,16 @@ class Parser(nn.Module):
     def decode(self, batch, src_encodings, dec_init_vec):
         """Given a batch of examples and their encodings of input utterances,
         compute query vectors at each decoding time step, which are used to compute
-        action probabilities
+        action probabilities给定一批示例及其输入话语的编码，计算每个解码时间步的查询向量，这些向量用于计算动作概率
 
         Args:
-            batch: a `Batch` object storing input examples
-            src_encodings: variable of shape (batch_size, src_sent_len, hidden_size * 2), encodings of source utterances
-            dec_init_vec: a tuple of variables representing initial decoder states
+            batch: a `Batch` object storing input examples存储输入示例的`batch`对象
+            src_encodings: variable of shape (batch_size, src_sent_len, hidden_size * 2), encodings of source utterances形状变量（batch_size、src_sent_len、hidden_size*2），源语句的编码
+            dec_init_vec: a tuple of variables representing initial decoder states表示初始解码器状态的变量元组
 
         Returns:
-            Query vectors, a variable of shape (tgt_action_len, batch_size, hidden_size)
-            Also return the attention weights over candidate tokens if using supervised attention
+            Query vectors, a variable of shape (tgt_action_len, batch_size, hidden_size)查询向量，形状变量（tgt_action_len、batch_size、hidden_size）
+            Also return the attention weights over candidate tokens if using supervised attention如果使用监督注意力，还返回候选令牌的注意力权重
         """
 
         batch_size = len(batch)
@@ -375,7 +378,7 @@ class Parser(nn.Module):
             #   previous attentional vector -> `att_tm1`,
             #   embedding of the current frontier (parent) constructor (rule) -> `parent_production_embed`,
             #   embedding of the frontier (parent) field -> `parent_field_embed`,
-            #   embedding of the ASDL type of the frontier field -> `parent_field_type_embed`,
+            #   embedding of the asdl type of the frontier field -> `parent_field_type_embed`,
             #   LSTM state of the parent action -> `parent_states`
             # ]
 
@@ -486,7 +489,7 @@ class Parser(nn.Module):
         primitive_vocab = self.vocab.primitive
         T = torch.cuda if args.cuda else torch
 
-        src_sent_var = nn_utils.to_input_variable([src_sent], self.vocab.source, cuda=args.cuda, training=False)
+        src_sent_var = nn_utils.to_input_variable([src_sent], self.vocab.source, cuda=args.cuda, training=False) #xingzhuangzhangliang
 
         # Variable(1, src_sent_len, hidden_size * 2)
         src_encodings, (last_state, last_cell) = self.encode(src_sent_var, [len(src_sent)])
@@ -511,7 +514,6 @@ class Parser(nn.Module):
         aggregated_primitive_tokens = OrderedDict()
         for token_pos, token in enumerate(src_sent):
             aggregated_primitive_tokens.setdefault(token, []).append(token_pos)
-
         t = 0
         hypotheses = [DecodeHypothesis()]
         hyp_states = [[]]
@@ -731,10 +733,10 @@ class Parser(nn.Module):
                         if gentoken_new_hyp_unks:
                             token = gentoken_new_hyp_unks[k]
                         else:
+                            print(primitive_vocab.unk_id)
                             token = primitive_vocab.id2word[primitive_vocab.unk_id]
                     else:
-                        token = primitive_vocab.id2word[token_id.item()]
-
+                       token = primitive_vocab.id2word(token_id.item())
                     action = GenTokenAction(token)
 
                     if token in aggregated_primitive_tokens:
@@ -783,7 +785,6 @@ class Parser(nn.Module):
                 break
 
         completed_hypotheses.sort(key=lambda hyp: -hyp.score)
-
         return completed_hypotheses
 
     def save(self, path):

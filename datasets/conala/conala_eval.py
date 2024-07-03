@@ -4,7 +4,7 @@ import sys
 import os
 import os.path
 import re
-import token
+import token1
 import tokenize
 import argparse
 

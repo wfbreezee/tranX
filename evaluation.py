@@ -23,7 +23,7 @@ def decode(examples, model, args, verbose=False, **kwargs):
         if is_wikisql:
             hyps = model.parse(example.src_sent, context=example.table, beam_size=args.beam_size)
         else:
-            hyps = model.parse(example.src_sent, context=None, beam_size=args.beam_size)
+             hyps = model.parse(example.src_sent, context=None, beam_size=args.beam_size)
         decoded_hyps = []
         for hyp_id, hyp in enumerate(hyps):
             got_code = False
@@ -57,10 +57,11 @@ def decode(examples, model, args, verbose=False, **kwargs):
 
 def evaluate(examples, parser, evaluator, args, verbose=False, return_decode_result=False, eval_top_pred_only=False):
     decode_results = decode(examples, parser, args, verbose=verbose)
-
-    eval_result = evaluator.evaluate_dataset(examples, decode_results, fast_mode=eval_top_pred_only, args=args)
+    # print(examples)
+    # print(decode_results)
+    eval_results = evaluator.evaluate_dataset(examples, decode_results, fast_mode=eval_top_pred_only)
 
     if return_decode_result:
-        return eval_result, decode_results
+        return eval_results, decode_results
     else:
-        return eval_result
+        return eval_results

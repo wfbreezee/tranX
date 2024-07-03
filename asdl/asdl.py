@@ -1,9 +1,12 @@
 # coding=utf-8
 from collections import OrderedDict, Counter
 from itertools import chain
+import re
+#from utils import remove_comment
+#from asdl
 
-from .utils import remove_comment
-
+#from asdl import utils
+#import utils
 
 class ASDLGrammar(object):
     """
@@ -11,7 +14,7 @@ class ASDLGrammar(object):
     """
     def __init__(self, productions):
         # productions are indexed by their head types
-        self._productions = OrderedDict()
+        self._productions = OrderedDict() #youxuzidian
         self._constructor_production_map = dict()
         for prod in productions:
             if prod.type not in self._productions:
@@ -284,6 +287,11 @@ class ASDLCompositeType(ASDLType):
 class ASDLPrimitiveType(ASDLType):
     pass
 
+def remove_comment(text):
+    text = re.sub(re.compile("#.*"), "", text)
+    text = '\n'.join(filter(lambda x: x, text.split('\n')))
+
+    return text
 
 if __name__ == '__main__':
     asdl_desc = """
@@ -310,6 +318,6 @@ expr = Variable(var variable)
 cmp_op = GreaterThan | Equal | LessThan
 """
 
-    grammar = ASDLGrammar.from_text(asdl_desc)
+    grammar = ASDLGrammar.from_text(open('/asdl/lang/commit/commit_asdl1.txt').read())
     print(ASDLCompositeType('1') == ASDLPrimitiveType('1'))
-
+#    print(open('/home/jiang/tranX/asdl/lang/commit/commit_asdl1.txt').read())

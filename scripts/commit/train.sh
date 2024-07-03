@@ -2,8 +2,8 @@
 set -e
 
 seed=${1:-0}
-vocab="data/jobs/vocab.freq2.bin"
-train_file="data/jobs/train.bin"
+vocab="/home/jiang/tranX/data/commit/vocab.freq23.bin"
+train_file="/home/jiang/tranX/data/commit/train3.bin"
 dropout=0.5
 hidden_size=256
 embed_size=128
@@ -12,10 +12,10 @@ field_embed_size=32
 type_embed_size=32
 lr_decay=0.985
 lr_decay_after_epoch=20
-max_epoch=200
+max_epoch=100
 patience=1000   # disable patience since we don't have dev set
 beam_size=5
-batch_size=10
+batch_size=32
 lr=0.0025
 ls=0.1
 lstm='lstm'
@@ -26,12 +26,12 @@ mkdir -p logs/jobs
 echo commit hash: `git rev-parse HEAD` > logs/jobs/${model_name}.log
 
 python -u /home/jiang/tranX/exp.py \
-    --cuda \
+    \
     --seed ${seed} \
     --mode train \
     --batch_size ${batch_size} \
-    --asdl_file asdl/lang/prolog/prolog_asdl.txt \
-    --transition_system prolog \
+    --asdl_file /home/jiang/tranX/asdl/lang/commit/commit_asdl_AT1.txt \
+    --transition_system committest \
     --train_file ${train_file} \
     --vocab ${vocab} \
     --lstm ${lstm} \
@@ -58,6 +58,6 @@ python -u /home/jiang/tranX/exp.py \
     --decode_max_time_step 55 \
     --log_every 50 \
     --save_all_models \
-    --save_to saved_models/jobs/${model_name} 2>&1 | tee -a logs/jobs/${model_name}.log
+    --save_to /home/jiang/tranX/saved_models/jobs/${model_name} 2>&1 | tee -a logs/jobs/${model_name}.log
 
-. scripts/jobs/test.sh saved_models/jobs/${model_name}.bin 2>&1 | tee -a logs/jobs/${model_name}.log
+. /home/jiang/tranX/scripts/commit/test.sh /home/jiang/tranX/saved_models/jobs/${model_name}.bin 2>&1 | tee -a logs/jobs/${model_name}.log

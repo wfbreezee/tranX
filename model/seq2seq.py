@@ -272,12 +272,12 @@ class Seq2SeqModel(nn.Module):
         src_encodings_att_linear = self.att_src_linear(src_encodings)
 
         att_tm1 = Variable(new_float_tensor(src_sents_num, self.hidden_size).zero_())
-        y_0 = Variable(new_long_tensor([self.tgt_vocab['<s>'] for _ in xrange(src_sents_num)]))
+        y_0 = Variable(new_long_tensor([self.tgt_vocab['<s>'] for _ in range(src_sents_num)]))
 
         eos_wid = self.tgt_vocab['</s>']
 
         samples_var = [y_0]
-        samples = [['<s>'] for _ in xrange(src_sents_num)]
+        samples = [['<s>'] for _ in range(src_sents_num)]
         samples_len = [0] * src_sents_num
         sample_scores = []
         t = 0

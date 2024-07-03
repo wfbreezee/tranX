@@ -1,8 +1,11 @@
 # coding=utf-8
 
-from .asdl import *
-from .asdl_ast import AbstractSyntaxTree
-from .transition_system import *
+from asdl import *
+from asdl import asdl_ast
+from asdl.asdl import ASDLCompositeType
+from asdl.asdl_ast import AbstractSyntaxTree
+from asdl import transition_system
+#from transition_system import *
 
 
 class Hypothesis(object):
@@ -19,19 +22,19 @@ class Hypothesis(object):
 
     def apply_action(self, action):
         if self.tree is None:
-            assert isinstance(action, ApplyRuleAction), 'Invalid action [%s], only ApplyRule action is valid ' \
+            assert isinstance(action, transition_system.ApplyRuleAction), 'Invalid action [%s], only ApplyRule action is valid ' \
                                                         'at the beginning of decoding'
 
             self.tree = AbstractSyntaxTree(action.production)
             self.update_frontier_info()
         elif self.frontier_node:
             if isinstance(self.frontier_field.type, ASDLCompositeType):
-                if isinstance(action, ApplyRuleAction):
+                if isinstance(action, transition_system.ApplyRuleAction):
                     field_value = AbstractSyntaxTree(action.production)
                     field_value.created_time = self.t
                     self.frontier_field.add_value(field_value)
                     self.update_frontier_info()
-                elif isinstance(action, ReduceAction):
+                elif isinstance(action, transition_system.ReduceAction):
                     assert self.frontier_field.cardinality in ('optional', 'multiple'), 'Reduce action can only be ' \
                                                                                         'applied on field with multiple ' \
                                                                                         'cardinality'
@@ -40,7 +43,7 @@ class Hypothesis(object):
                 else:
                     raise ValueError('Invalid action [%s] on field [%s]' % (action, self.frontier_field))
             else:  # fill in a primitive field
-                if isinstance(action, GenTokenAction):
+                if isinstance(action, transition_system.GenTokenAction):
                     # only field of type string requires termination signal </primitive>
                     end_primitive = False
                     if self.frontier_field.type.name == 'string':
@@ -59,7 +62,7 @@ class Hypothesis(object):
                         self.frontier_field.set_finish()
                         self.update_frontier_info()
 
-                elif isinstance(action, ReduceAction):
+                elif isinstance(action, transition_system.ReduceAction):
                     assert self.frontier_field.cardinality in ('optional', 'multiple'), 'Reduce action can only be ' \
                                                                                         'applied on field with multiple ' \
                                                                                         'cardinality'
@@ -120,3 +123,7 @@ class Hypothesis(object):
     @property
     def completed(self):
         return self.tree and self.frontier_field is None
+
+
+class GenTokenAction:
+    pass
