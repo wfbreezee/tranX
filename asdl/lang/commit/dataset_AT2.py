@@ -83,8 +83,8 @@ def load_dataset(transition_system, dataset_file):
 def prepare_dataset():
     # vocab_freq_cutoff = 1 for atis
     vocab_freq_cutoff = 2  # for geo query
-    grammar = ASDLGrammar.from_text(open('/content/tranX/asdl/lang/commit/commit_asdl_AT1.txt').read())
-    transition_system = CommitTransitionSystemtest(grammar)
+    grammar = ASDLGrammar.from_text(open('/content/tranX/asdl/lang/commit/commit_asdl.txt').read())
+    transition_system = CommitTransitionSystem(grammar)
 
     train_set = load_dataset(transition_system, '/content/tranX/data/commit/commit1380type.txt')
     test_set = load_dataset(transition_system, '/content/tranX/data/commit/test1380type.txt')
